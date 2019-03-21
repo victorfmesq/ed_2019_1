@@ -7,6 +7,8 @@
 // define get_neibs(l, c) {{l, c - 1}, {l - 1, c}, {l, c + 1}, {l + 1, c}}
 const char WALL = '#';
 const char HOLE = ' ';
+const char WAY = '.';
+const char END = 'X';
 
 typedef struct{ // Coordena atual do lab
     int l;
@@ -55,7 +57,7 @@ bool eh_furavel(int nline, int ncol, char lab[nline][ncol], int l, int c){
         return false;
     int cont = 0;
     Neibs neibs = get_neibs(l, c);
-    for(int i = 0; i < 4; i++)
+    for(int i = 0; i < LADOS; i++)
         if(equals(nline, ncol, lab, neibs.vet[i].l, neibs.vet[i].c, '#'))
             cont++;
     if(cont < 3)
@@ -76,29 +78,67 @@ void crash(int nline, int ncol, char lab[nline][ncol], int l, int c){
    // show(nline, ncol, lab);
 }
 
+bool find_way(int nline, int ncol, char lab[nline][ncol], int l, int c, bool mat_bool[nline][ncol], int fl, int fc){
+    //if(eh_furavel(nline, ncol, lab, l, c))
+    //    return false;
+    if((l < 0) || (l >= nline) || (c < 0) || (c >= ncol))
+        return false;
+    if(lab[l][c] != HOLE)
+        return false;
+    if(mat_bool[l][c] == true)
+        return false;
+    mat_bool[l][c] = true; // marca como visitado
+    lab[l][c] = WAY; // marca os pontos no chao
+
+    if (l == fl && c == fc)
+        return true;
+    Neibs neibs = get_neibs(l, c);
+    for(int i = 0; i < LADOS; i++){
+        if(find_way(nline, ncol, lab, neibs.vet[i].l, neibs.vet[i].c, mat_bool, fl, fc))
+       return true;
+    }
+    //if (find_way(nline, ncol, lab, l + 1, c, mat_bool, fl, fc) ||
+    //    find_way(nline, ncol, lab, l - 1, c, mat_bool, fl, fc) ||
+    //    find_way(nline, ncol, lab, l, c + 1, mat_bool, fl, fc) ||
+    //    find_way(nline, ncol, lab, l, c - 1, mat_bool, fl, fc)){
+    //        return true;
+    //}
+    lab[l][c] = HOLE; 
+    return false;
+}
+
 int main(){
     srand(time(NULL));
     int nline = 0;
     int ncol = 0;
     puts("Escreva o tamanho do labirinto:\n N_linhas | N_colunas");
-    scanf("%d%d", &nline, &ncol);
+    scanf("%d %d", &nline, &ncol);
     char lab[nline][ncol];
+    bool mat_bool[nline][ncol];
     // lendo / contruindo labirinto
     for(int l = 0; l < nline; l++){
         for(int c = 0; c < ncol; c++){
             lab[l][c] = WALL;
+            mat_bool[l][c] = false;
         }
     }
+    
     // printando matriz
     show(nline, ncol, lab);
-    int l = 0; //coordenada X
-    int c = 0; //coordenada Y
+    int l = 0; //coordenada X inicial
+    int c = 0; //coordenada Y inicial
     puts("Escreva as coordenadas do inicios do labirinto");
     scanf("%d %d", &l, &c);
-
+    // criando labirinto
     crash(nline, ncol, lab, l, c);
     show(nline, ncol, lab);
-   // recursão
+    int fl = 0; // coordenada X final
+    int fc = 0; // coordenada Y final
+    puts("Escreva as coordenadas do final do labirinto");
+    scanf("%d %d", &fl, &fc);
+    //encontrando caminho
+    find_way(nline, ncol, lab, l, c, mat_bool, fl, fc);
+    show(nline, ncol, lab);
 
     return 0;
 }
